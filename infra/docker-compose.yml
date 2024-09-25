@@ -1,11 +1,25 @@
 version: '3.3'
+
+volumes:
+  sqlite_data:
+  media:
+
 services:
+
+  backend:
+    container_name: foodgram-backend
+    build: ../backend
+    volumes:
+      # - static:/backend_static
+      - media:/app/media
+      - sqlite_data:/data
 
   frontend:
     container_name: foodgram-front
     build: ../frontend
     volumes:
       - ../frontend/:/app/result_build/
+
   nginx:
     container_name: foodgram-proxy
     image: nginx:1.25.4-alpine
@@ -15,3 +29,4 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
+      - media:/static/media

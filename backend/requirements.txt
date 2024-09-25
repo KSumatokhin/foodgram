@@ -1,3 +1,7 @@
 Django==4.2.16
 djangorestframework
 Pillow
+djoser
+djangorestframework-simplejwt==4.7.2
+gunicorn==20.1.0
+django-filter
