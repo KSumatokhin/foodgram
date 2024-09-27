@@ -4,7 +4,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserSerializer
 from django.core.files.base import ContentFile
-from django.db.models import F, Q
+from django.db.models import F, Q, Sum
 
 from users.models import Subscription
 from recipes.models import Favorite, Ingredient, Recipe, RecipeIngredient, RecipeTag, ShoppingCart, Tag

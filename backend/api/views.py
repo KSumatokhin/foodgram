@@ -4,11 +4,11 @@ from rest_framework.views import APIView
 from rest_framework import mixins, viewsets, generics, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from djoser.views import UserViewSet
-from django.db.models import F
+from django.db.models import Sum
 from django.db.models import Count
 
 from api.serializers import (
@@ -23,6 +23,11 @@ from users.models import Subscription
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 
 User = get_user_model()
+
+
+def redirect_short_link(request, short_link):
+    id = Recipe.objects.get(short_link=short_link).pk
+    return redirect(f'/recipes/{id}/')
 
 
 class MyUserViewSet(UserViewSet):
@@ -96,7 +101,8 @@ class SubscribeViewSet(APIView):
         author = get_object_or_404(User, pk=id)
         request.data['user'] = request.user.id
         request.data['author'] = author.id
-        serializer = SubscriptionCreateSerializer(data=request.data, context={'request': request})
+        serializer = SubscriptionCreateSerializer(
+            data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -119,7 +125,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,
                           IsSuperUserOrOwnerOrReadOnly, )
     filterset_class = RecipeFilter
-    filterset_fields = ('author', 'tags', 'is_in_shopping_cart', 'is_favorited')
+    filterset_fields = (
+        'author', 'tags', 'is_in_shopping_cart', 'is_favorited')
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -152,9 +159,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def download_shopping_cart(self, request, pk=None):
-        response = HttpResponse(content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename="filename.txt"'
-        response.write('Hello')
+        user = request.user
+        ingredients = Ingredient.objects.prefetch_related(
+            'recipes', 'recipes__shoppingcart'
+        ).filter(
+            recipes__shoppingcart__user=user
+        ).annotate(
+            total_amount=Sum('recipeingredient__amount')
+        )
+        if ingredients.exists():
+            response = HttpResponse(content_type='text/plain')
+            response['Content-Disposition'] = 'attachment; filename="file.txt"'
+            for ingredient in ingredients:
+                response.write(
+                    f'{ingredient.name} - {ingredient.total_amount} '
+                    f'{ingredient.measurement_unit} \n'
+                )
         return response
 
     @action(detail=True, methods=['post', 'delete'])
@@ -163,7 +183,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe = get_object_or_404(Recipe, pk=pk)
             request.data['recipe'] = recipe.id
             request.data['user'] = request.user.id
-            serializer = FavoriteCreateSerializer(data=request.data, context={'request': request})
+            serializer = FavoriteCreateSerializer(
+                data=request.data, context={'request': request})
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(ShortRecipeSerializer(serializer.instance.favorite).data, status=status.HTTP_201_CREATED)
@@ -175,3 +196,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 favorite.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['get'], permission_classes=[AllowAny], url_path='get-link', url_name='get-link')
+    def get_link(self, request, pk=None):
+        val = len(request.META['PATH_INFO'])
+        domain = request.build_absolute_uri()[:-val]
+        recipe = get_object_or_404(Recipe, pk=pk)
+        data = {}
+        data['short-link'] = f'{domain}/s/{recipe.short_link}'
+        return Response(data, status=status.HTTP_200_OK)

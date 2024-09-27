@@ -1,8 +1,16 @@
+import string
+import random
+
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 
-from foodgram_backend.constants import (MAX_NAME, MIN_VALUE)
+from foodgram_backend.constants import (MAX_NAME, MIN_VALUE, MAX_SHORT_LINK)
+
+
+def slug_random(num_char: int) -> str:
+    symbols = string.ascii_letters + string.digits
+    return ''.join(random.sample(symbols, num_char))
 
 
 User = get_user_model()
@@ -77,6 +85,15 @@ class Recipe(models.Model):
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления'
     )
+    short_link = models.SlugField(null=True, max_length=3)
+
+    def save(self, *args, **kwargs):
+        if self.short_link is None:
+            slug = slug_random(MAX_SHORT_LINK)
+            while Recipe.objects.filter(short_link=slug).exists():
+                slug = slug_random(MAX_SHORT_LINK)
+            self.short_link = slug
+        super(Recipe, self).save(*args, **kwargs)
 
 
 class RecipeIngredient(models.Model):
