@@ -1,5 +1,5 @@
-from django.forms import CheckboxInput
 import django_filters
+from django.forms import CheckboxInput
 
 from recipes.models import Ingredient, Recipe, Tag
 

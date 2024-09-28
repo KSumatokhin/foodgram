@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
-from foodgram_backend.constants import (MAX_EMAIL, MAX_NAME)
+from foodgram_backend.constants import MAX_EMAIL, MAX_NAME
 from users.validators import validate_me
 
 

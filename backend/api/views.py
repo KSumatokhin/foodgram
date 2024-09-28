@@ -1,26 +1,26 @@
-from django.http import HttpResponse
-from rest_framework import viewsets, status
-from rest_framework.views import APIView
-from rest_framework import mixins, viewsets, generics, permissions
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
+from django.db.models import Count, Sum
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from djoser.views import UserViewSet
-from django.db.models import Sum
-from django.db.models import Count
+from rest_framework import generics, permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from api.serializers import (
-    CustomUserSerializer, FavoriteCreateSerializer, IngredientsSerializer, RecipeCreateSerializer,
-    RecipeSerializer, ShoppingCartCreateSerializer, ShortRecipeSerializer, SubscriptionCreateSerializer,
-    SubscriptionSerializer,
-    TagsSerializer, UserAvatarSerializer
-)
 from api.filters import IngredientsFilter, RecipeFilter
 from api.permissions import IsSuperUserOrOwnerOrReadOnly
+from api.serializers import (FavoriteCreateSerializer, IngredientsSerializer,
+                             RecipeCreateSerializer, RecipeSerializer,
+                             ShoppingCartCreateSerializer,
+                             ShortRecipeSerializer,
+                             SubscriptionCreateSerializer,
+                             SubscriptionSerializer, TagsSerializer,
+                             UserAvatarSerializer)
+from recipes.models import Ingredient, Recipe, Tag
 from users.models import Subscription
-from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 
 User = get_user_model()
 

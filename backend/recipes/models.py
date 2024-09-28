@@ -1,11 +1,11 @@
-import string
 import random
+import string
 
-from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
+from django.db import models
 
-from foodgram_backend.constants import (MAX_NAME, MIN_VALUE, MAX_SHORT_LINK)
+from foodgram_backend.constants import MAX_NAME, MAX_SHORT_LINK, MIN_VALUE
 
 
 def slug_random(num_char: int) -> str:
