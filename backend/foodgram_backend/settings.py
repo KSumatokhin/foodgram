@@ -15,7 +15,7 @@ SECRET_KEY = 'django-insecure-rzjg-y@2^*dv(a(&=-aysxyao-s2%jt)kp%^5+om&vs6aig_)r
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['ksfoodgram.zapto.org', '51.250.29.172', '127.0.0.1', 'localhost']
 
 
 # Application definition
