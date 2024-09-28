@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from foodgram_backend.constants import MAX_NAME, MAX_SHORT_LINK, MIN_VALUE
+from foodgram_backend.constants import MAX_NAME, MAX_SHORT_LINK, MIN_VALUE, MAX_OUT_NAME
 
 
 def slug_random(num_char: int) -> str:
@@ -62,7 +62,7 @@ class Recipe(models.Model):
         verbose_name='Название'
     )
     image = models.ImageField(
-        'Картинка',
+        verbose_name='Картинка',
         upload_to='recipes/',
         null=True,
         default=None
@@ -85,7 +85,23 @@ class Recipe(models.Model):
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления'
     )
-    short_link = models.SlugField(null=True, max_length=3)
+    pub_date = models.DateField(
+        verbose_name='Дата публикации',
+        auto_now_add=True
+    )
+    short_link = models.SlugField(
+        verbose_name='Короткая ссылка',
+        null=True,
+        max_length=MAX_SHORT_LINK
+    )
+
+    class Meta:
+        ordering = ('-pub_date',)
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
+        
+    def __str__(self):
+        return self.name[:MAX_OUT_NAME]
 
     def save(self, *args, **kwargs):
         if self.short_link is None:

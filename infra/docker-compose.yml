@@ -3,6 +3,7 @@ version: '3.3'
 volumes:
   sqlite_data:
   media:
+  static:
 
 services:
 
@@ -10,7 +11,7 @@ services:
     container_name: foodgram-backend
     build: ../backend
     volumes:
-      # - static:/backend_static
+      - static:/backend_static
       - media:/app/media
       - sqlite_data:/data
 
@@ -30,3 +31,4 @@ services:
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
       - media:/static/media
+      - static:/static

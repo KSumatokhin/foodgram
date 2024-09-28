@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from djoser.views import UserViewSet
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -26,8 +27,12 @@ User = get_user_model()
 
 
 def redirect_short_link(request, short_link):
-    id = Recipe.objects.get(short_link=short_link).pk
-    return redirect(f'/recipes/{id}/')
+    pk = Recipe.objects.get(short_link=short_link).pk
+    val = len(request.META['PATH_INFO'])
+    domain = request.build_absolute_uri()[:-val]
+    # return reverse('recipes-detail', args=[pk])
+    # return redirect(f'{domain}/recipes/{pk}/')
+    return redirect(f'/recipes/{pk}/')
 
 
 class MyUserViewSet(UserViewSet):
@@ -197,7 +202,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['get'], permission_classes=[AllowAny], url_path='get-link', url_name='get-link')
+    @action(detail=True, methods=['get'], permission_classes=[AllowAny],
+            url_path='get-link', url_name='get-link')
     def get_link(self, request, pk=None):
         val = len(request.META['PATH_INFO'])
         domain = request.build_absolute_uri()[:-val]
