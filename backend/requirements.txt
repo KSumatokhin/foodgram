@@ -5,3 +5,4 @@ Pillow
 djoser
 gunicorn==20.1.0
 django-filter
+psycopg2-binary==2.9.3
