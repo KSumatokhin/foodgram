@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
 from djoser.views import UserViewSet
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -28,10 +27,6 @@ User = get_user_model()
 
 def redirect_short_link(request, short_link):
     pk = Recipe.objects.get(short_link=short_link).pk
-    val = len(request.META['PATH_INFO'])
-    domain = request.build_absolute_uri()[:-val]
-    # return reverse('recipes-detail', args=[pk])
-    # return redirect(f'{domain}/recipes/{pk}/')
     return redirect(f'/recipes/{pk}/')
 
 
@@ -125,7 +120,10 @@ class SubscribeViewSet(APIView):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all().prefetch_related(
-        'ingredients', 'tags').select_related('author')
+        'ingredients', 'tags'
+    ).select_related(
+        'author'
+    ).order_by('-pub_date', '-pk')
     serializer_class = RecipeSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,
                           IsSuperUserOrOwnerOrReadOnly, )
@@ -152,15 +150,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer = ShoppingCartCreateSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(ShortRecipeSerializer(serializer.instance.recipe).data, status=status.HTTP_201_CREATED)
-        if request.method == 'DELETE':
-            user = request.user
-            recipe = get_object_or_404(Recipe, pk=pk)
-            shopping_cart = user.shoppingcart.filter(recipe=recipe)
-            if shopping_cart.exists():
-                shopping_cart.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                ShortRecipeSerializer(serializer.instance.recipe).data,
+                status=status.HTTP_201_CREATED
+            )
+        user = request.user
+        recipe = get_object_or_404(Recipe, pk=pk)
+        shopping_cart = user.shoppingcart.filter(recipe=recipe)
+        if shopping_cart.exists():
+            shopping_cart.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'])
     def download_shopping_cart(self, request, pk=None):
@@ -192,15 +192,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 data=request.data, context={'request': request})
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(ShortRecipeSerializer(serializer.instance.favorite).data, status=status.HTTP_201_CREATED)
-        if request.method == 'DELETE':
-            user = request.user
-            recipe = get_object_or_404(Recipe, pk=pk)
-            favorite = user.favorites.filter(favorite=recipe)
-            if favorite.exists():
-                favorite.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                ShortRecipeSerializer(serializer.instance.favorite).data,
+                status=status.HTTP_201_CREATED
+            )
+        user = request.user
+        recipe = get_object_or_404(Recipe, pk=pk)
+        favorite = user.favorites.filter(favorite=recipe)
+        if favorite.exists():
+            favorite.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['get'], permission_classes=[AllowAny],
             url_path='get-link', url_name='get-link')

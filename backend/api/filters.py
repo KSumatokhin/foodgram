@@ -16,13 +16,6 @@ class IngredientsFilter(django_filters.FilterSet):
         fields = ('name', )
 
 
-# def shopping_carts(request):
-#     if request is None:
-#         return Recipe.objects.all()
-#     user = request.user
-#     return Recipe.objects.filter(shoppingcart__user=user)
-
-
 class RecipeFilter(django_filters.FilterSet):
     author = django_filters.NumberFilter(
         field_name='author',
@@ -54,10 +47,3 @@ class RecipeFilter(django_filters.FilterSet):
             return queryset.all()
         lookup = '__'.join([name, 'user'])
         return queryset.filter(**{lookup: user})
-
-    # def filter_favorites(self, queryset, name, value):
-    #     user = getattr(self.request, 'user', None)
-    #     if user.is_anonymous or value is False:
-    #         return queryset.all()
-    #     lookup = '__'.join([name, 'user'])
-    #     return queryset.filter(**{lookup: user})

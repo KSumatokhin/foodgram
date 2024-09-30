@@ -211,12 +211,12 @@ class RecipeSerializer(serializers.ModelSerializer):
         result = []
         ingredients = obj.ingredients.all()
         for ingredient in ingredients:
-            ret = {
-                'id': ingredient.id,
-                'name': ingredient.name,
-                'measurement_unit': ingredient.measurement_unit,
-                'amount': ingredient.recipeingredient_set.get(recipe=obj).amount
-            }
+            ret = {}
+            ret['id'] = ingredient.id
+            ret['name'] = ingredient.name
+            ret['measurement_unit'] = ingredient.measurement_unit
+            ret['amount'] = ingredient.recipeingredient_set.get(recipe=obj
+                                                                ).amount
             result.append(ret)
         return result
 
@@ -263,9 +263,7 @@ class ShoppingCartCreateSerializer(serializers.Serializer):
     def create(self, validated_data):
         user = User.objects.get(pk=validated_data['user_id'])
         recipe = get_object_or_404(Recipe, pk=validated_data['recipe_id'])
-        shopping_cart = ShoppingCart.objects.create(
-            user=user, recipe=recipe)
-        return shopping_cart
+        return ShoppingCart.objects.create(user=user, recipe=recipe)
 
 
 class SubscriptionCreateSerializer(serializers.Serializer):
@@ -280,9 +278,11 @@ class SubscriptionCreateSerializer(serializers.Serializer):
         user = data['user']
         author = data['author']
         if author == user:
-            raise serializers.ValidationError('Нельзя подписаться на самого себя')
-        elif user.subscriptions.filter(author=author).exists():
-            raise serializers.ValidationError('На данного автора уже есть подписка')
+            raise serializers.ValidationError(
+                'Нельзя подписаться на самого себя')
+        if user.subscriptions.filter(author=author).exists():
+            raise serializers.ValidationError(
+                'На данного автора уже есть подписка')
         return data
 
     def create(self, validated_data):
@@ -319,8 +319,7 @@ class SubscriptionSerializer(CustomUserSerializer):
         return serializer.data
 
     def get_recipes_count(self, user):
-        recipes_count = Recipe.objects.filter(author=user).count()
-        return recipes_count
+        return Recipe.objects.filter(author=user).count()
 
 
 class FavoriteCreateSerializer(serializers.Serializer):
@@ -332,14 +331,12 @@ class FavoriteCreateSerializer(serializers.Serializer):
     )
 
     def create(self, validated_data):
-        favorite = Favorite.objects.create(
-            user=validated_data['user'],
-            favorite=validated_data['recipe']
-        )
-        return favorite
+        user = validated_data['user']
+        recipe = validated_data['recipe']
+        return Favorite.objects.create(user=user, favorite=recipe)
 
     def validate_recipe(self, value):
         user = self.context['request'].user
-        if user.favorites.filter(user=user).exists():
+        if user.favorites.filter(favorite=value).exists():
             raise serializers.ValidationError('Этот рецепт уже в избранном')
         return value

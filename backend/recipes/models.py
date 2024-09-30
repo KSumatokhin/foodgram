@@ -5,7 +5,8 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from foodgram_backend.constants import MAX_NAME, MAX_SHORT_LINK, MIN_VALUE, MAX_OUT_NAME
+from foodgram_backend.constants import (MAX_NAME, MAX_OUT_NAME, MAX_SHORT_LINK,
+                                        MIN_VALUE)
 
 
 def slug_random(num_char: int) -> str:
@@ -99,7 +100,7 @@ class Recipe(models.Model):
         ordering = ('-pub_date',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-        
+
     def __str__(self):
         return self.name[:MAX_OUT_NAME]
 

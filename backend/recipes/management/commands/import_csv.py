@@ -1,9 +1,6 @@
 import csv
-import os
-from pathlib import Path
-from django.conf import settings
 
-from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.core.management import BaseCommand
 
 from recipes.models import Ingredient, Tag
