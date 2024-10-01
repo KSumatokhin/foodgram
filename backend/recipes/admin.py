@@ -34,7 +34,11 @@ class RecipeAdmin(admin.ModelAdmin):
     fieldsets = [
         (
             None,
-            {'fields': ['name', 'author', 'text', 'cooking_time', 'short_link'], }
+            {
+                'fields': [
+                    'name', 'author', 'text', 'cooking_time', 'short_link'
+                ],
+            }
         ),
         (
             'Дополнительные параметры',
