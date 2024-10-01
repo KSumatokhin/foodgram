@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Count
 
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 
@@ -24,12 +25,29 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author', 'favorites')
+    list_display = ('name', 'author')
     list_filter = ('tags__name',)
     search_fields = ('author__username', 'name__istartswith', )
-    readonly_fields = ('short_link', )
+    readonly_fields = ('short_link', 'favorites')
     # inlines = (RecipeIngredientInline, )
     # fields = ('favorites', )
+    fieldsets = [
+        (
+            None,
+            {'fields': ['name', 'author', 'text', 'cooking_time', 'short_link'], }
+        ),
+        (
+            'Дополнительные параметры',
+            {
+                'classes': ["collapse"],
+                'fields': ['favorites'],
+            }
+        )
+    ]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(favorite=Count('favorites__favorite'))
 
     @admin.display(description='В избранном')
     def favorites(self, obj):
