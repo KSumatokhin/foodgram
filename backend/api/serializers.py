@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from djoser.serializers import UserSerializer
+from djoser.serializers import UserSerializer as DjoserUserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
@@ -10,7 +10,7 @@ from users.models import Subscription
 User = get_user_model()
 
 
-class UserAvatarSerializer(UserSerializer):
+class UserAvatarSerializer(DjoserUserSerializer):
     avatar = Base64ImageField(required=True, allow_null=False)
 
     class Meta:
@@ -18,7 +18,7 @@ class UserAvatarSerializer(UserSerializer):
         fields = ('avatar', )
 
 
-class CustomUserSerializer(UserSerializer):
+class UserSerializer(DjoserUserSerializer):
     is_subscribed = serializers.SerializerMethodField(
         'get_subscriptions',
         read_only=True,
@@ -168,7 +168,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 class RecipeSerializer(serializers.ModelSerializer):
     tags = TagsSerializer(many=True)
-    author = CustomUserSerializer(many=False)
+    author = UserSerializer(many=False)
     ingredients = RecipeIngredientSerializer(
         many=True,
         read_only=True,
@@ -239,7 +239,7 @@ class SubscriptionCreateSerializer(serializers.ModelSerializer):
             subscription.author, context=self.context).data
 
 
-class SubscriptionSerializer(CustomUserSerializer):
+class SubscriptionSerializer(UserSerializer):
     recipes = serializers.SerializerMethodField(
         'get_recipe',
         read_only=True,
@@ -249,8 +249,8 @@ class SubscriptionSerializer(CustomUserSerializer):
         read_only=True,
     )
 
-    class Meta(CustomUserSerializer.Meta):
-        fields = CustomUserSerializer.Meta.fields.copy()
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields.copy()
         fields += ['recipes', 'recipes_count']
 
     def get_recipe(self, user):
@@ -265,11 +265,7 @@ class SubscriptionSerializer(CustomUserSerializer):
         return Recipe.objects.filter(author=user).count()
 
 
-class ShoppingCartCreateSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = ShoppingCart
-        fields = ('user', 'recipe',)
+class CreateSerializer(serializers.ModelSerializer):
 
     def validate_recipe(self, value):
         user = self.context['request'].user
@@ -279,18 +275,14 @@ class ShoppingCartCreateSerializer(serializers.ModelSerializer):
         return value
 
 
-class FavoriteCreateSerializer(ShoppingCartCreateSerializer):
+class ShoppingCartCreateSerializer(CreateSerializer):
+    class Meta:
+        model = ShoppingCart
+        fields = ('user', 'recipe',)
+
+
+class FavoriteCreateSerializer(CreateSerializer):
     class Meta:
         model = Favorite
+        fields = ('user', 'recipe',)
 
-# class FavoriteCreateSerializer(serializers.ModelSerializer):
-
-#     class Meta:
-#         model = Favorite
-#         fields = ('user', 'recipe',)
-
-#     def validate_recipe(self, value):
-#         user = self.context['request'].user
-#         if Favorite.objects.filter(user=user, recipe=value).exists():
-#             raise serializers.ValidationError('Этот рецепт уже в избранном')
-#         return value

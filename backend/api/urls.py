@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.views import (IngredientsListRetrieve, MyUserViewSet, RecipeViewSet,
+from api.views import (IngredientsListRetrieve, UserViewSet, RecipeViewSet,
                        SubscribeViewSet, TagsListRetrieve, UserAvatarViewSet)
 
 router = DefaultRouter()
@@ -18,7 +18,7 @@ router.register(
     prefix='recipes', viewset=RecipeViewSet,
     basename='recipes'
 )
-router.register("users", viewset=MyUserViewSet)
+router.register("users", viewset=UserViewSet)
 
 
 urlpatterns = [

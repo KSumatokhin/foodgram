@@ -1,7 +1,7 @@
 from django.db.models import Count, Sum
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect
-from djoser.views import UserViewSet
+from django.shortcuts import get_object_or_404
+from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
@@ -23,12 +23,7 @@ from users.models import MyUser as User
 from users.models import Subscription
 
 
-def redirect_short_link(request, short_link):
-    pk = Recipe.objects.get(short_link=short_link).pk
-    return redirect(f'/recipes/{pk}/')
-
-
-class MyUserViewSet(UserViewSet):
+class UserViewSet(DjoserUserViewSet):
 
     def get_serializer_class(self):
         if self.action == "subscriptions":

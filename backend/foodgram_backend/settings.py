@@ -99,7 +99,9 @@ DATABASES_PSG = {
     }
 }
 
-DATABASES = DATABASES_PSG
+PSG = os.getenv('PSG', 'False').lower() == 'true'
+
+DATABASES = DATABASES_PSG if PSG else DATABASES_SQL
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -164,8 +166,8 @@ REST_FRAMEWORK = {
 
 DJOSER = {
     'SERIALIZERS': {
-        'current_user': 'api.serializers.CustomUserSerializer',
-        'user': 'api.serializers.CustomUserSerializer',
+        'current_user': 'api.serializers.UserSerializer',
+        'user': 'api.serializers.UserSerializer',
     },
     'PERMISSIONS': {
         'user_list': ['rest_framework.permissions.AllowAny'],

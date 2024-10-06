@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
+from django.db.models import Q, F
 
 from foodgram_backend.constants import MAX_EMAIL, MAX_NAME
 from users.validators import validate_me
@@ -55,9 +56,11 @@ class Subscription(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'author'],
-                # condition=Q(user__id=F('author__id')),
-                # name='unique_subscription_except_self'
                 name='unique_subscription'
+            ),
+            models.CheckConstraint(
+                check=~Q(user=F('author')),
+                name='except_self'
             )
         ]
         verbose_name = 'подписка'
