@@ -146,10 +146,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField(method_name='get_id')
     name = serializers.SerializerMethodField(method_name='get_name')
     measurement_unit = serializers.SerializerMethodField(
         method_name='get_measurement_unit'
     )
+
+    def get_id(self, obj):
+        return obj.ingredient.id
 
     def get_name(self, obj):
         return obj.ingredient.name
