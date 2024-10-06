@@ -2,7 +2,7 @@ import random
 import string
 
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from foodgram_backend.constants import (MAX_NAME, MAX_OUT_NAME, MAX_SHORT_LINK,
@@ -28,7 +28,13 @@ class Ingredient(models.Model):
     )
 
     class Meta:
-        ordering = ('id',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='unique_ingredient'
+            )
+        ]
+        ordering = ('name',)
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
 
@@ -47,7 +53,7 @@ class Tag(models.Model):
     )
 
     class Meta:
-        ordering = ('id',)
+        ordering = ('slug',)
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
 
@@ -77,17 +83,20 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         verbose_name='Ингредиент',
-        related_name='recipes',
         through='RecipeIngredient'
     )
     tags = models.ManyToManyField(
         Tag,
-        verbose_name='Тег',
-        related_name='recipes',
-        through='RecipeTag'
+        verbose_name='Тег'
     )
     cooking_time = models.PositiveSmallIntegerField(
-        verbose_name='Время приготовления'
+        verbose_name='Время приготовления',
+        validators=(
+            MaxValueValidator(
+                limit_value=1500,
+                message='Постарайтесь уложиться в 24 часа!'
+            ),
+        )
     )
     pub_date = models.DateField(
         verbose_name='Дата публикации',
@@ -101,6 +110,7 @@ class Recipe(models.Model):
 
     class Meta:
         ordering = ('-pub_date',)
+        default_related_name = 'recipes'
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
@@ -141,71 +151,57 @@ class RecipeIngredient(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
-                name='unique_ingredient',
+                name='unique_recipe_ingredient',
                 violation_error_message='Этот ингредиент уже добавлен.'
             )
         ]
+        verbose_name = 'Ингредиенты рецепта'
+        verbose_name_plural = 'Ингредиенты рецептов'
 
     def __str__(self):
         return f'{self.recipe} {self.ingredient}'
 
 
-class RecipeTag(models.Model):
-    recipe = models.ForeignKey(
-        Recipe,
-        verbose_name='Рецепт',
-        on_delete=models.CASCADE
-    )
-    tag = models.ForeignKey(
-        Tag,
-        verbose_name='Тег',
-        on_delete=models.CASCADE
-    )
-
-
-class ShoppingCart(models.Model):
-    user = models.ForeignKey(
-        User,
-        verbose_name='Пользователь',
-        on_delete=models.CASCADE,
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        verbose_name='Рецепт',
-        on_delete=models.CASCADE
-    )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_recipe'
-            )
-        ]
-        verbose_name = 'список покупок'
-        verbose_name_plural = 'Списки покупок'
-        default_related_name = 'shoppingcart'
-
-
-class Favorite(models.Model):
+class ShoppingCartFavorite(models.Model):
     user = models.ForeignKey(
         User,
         verbose_name='Пользователь',
         on_delete=models.CASCADE
     )
-    favorite = models.ForeignKey(
+    recipe = models.ForeignKey(
         Recipe,
         verbose_name='Избранное',
         on_delete=models.CASCADE
     )
 
     class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.user.username
+
+
+class ShoppingCart(ShoppingCartFavorite):
+    class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'favorite'],
+                fields=['user', 'recipe'],
+                name='unique_shoppingcart'
+            )
+        ]
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Списки покупок'
+        default_related_name = 'shoppingcart'
+
+
+class Favorite(ShoppingCartFavorite):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
                 name='unique_favorite'
             )
         ]
-        verbose_name = 'избранное'
+        verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'
         default_related_name = 'favorites'

@@ -52,5 +52,16 @@ class Subscription(models.Model):
     )
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                # condition=Q(user__id=F('author__id')),
+                # name='unique_subscription_except_self'
+                name='unique_subscription'
+            )
+        ]
         verbose_name = 'подписка'
         verbose_name_plural = 'Подписки'
+
+    def __str__(self):
+        return f'{self.user.username}-{self.author.username}'

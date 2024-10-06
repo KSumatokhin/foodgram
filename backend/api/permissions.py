@@ -1,12 +1,12 @@
 from rest_framework import permissions
 
+from foodgram_backend.constants import ME
+
 
 class AllowAnyExceptMePoint(permissions.BasePermission):
     def has_permission(self, request, view):
         user = request.user
-        if view.action == 'me' and user.is_authenticated is False:
-            return False
-        return True
+        return (view.action != ME or user.is_authenticated)
 
 
 class IsSuperUserOrOwnerOrReadOnly(

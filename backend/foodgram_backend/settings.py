@@ -4,7 +4,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
@@ -15,7 +14,6 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1').split(' ')
-
 
 # Application definition
 
@@ -88,8 +86,6 @@ CSRF_TRUSTED_ORIGINS = ['https://ksfoodgram.zapto.org']
 
 DATABASES = {
     'default': {
-        # Меняем настройку Django: теперь для работы будет использоваться
-        # бэкенд postgresql
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('POSTGRES_DB', 'django'),
         'USER': os.getenv('POSTGRES_USER', 'django'),

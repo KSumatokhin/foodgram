@@ -26,7 +26,6 @@ services:
     env_file: .env
     image: kskhin/foodgram_frontend
     command: cp -r /app/build/. /frontend_static/
-    # command: ls -a
     volumes:
       - static:/frontend_static
 
