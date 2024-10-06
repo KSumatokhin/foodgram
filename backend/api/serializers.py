@@ -285,4 +285,3 @@ class FavoriteCreateSerializer(CreateSerializer):
     class Meta:
         model = Favorite
         fields = ('user', 'recipe',)
-
