@@ -30,7 +30,7 @@ class UserViewSet(DjoserUserViewSet):
             return SubscriptionSerializer
         return super().get_serializer_class()
 
-    @action(["get"], detail=False)
+    @action(["get"], detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request, *args, **kwargs):
         qs = User.objects.filter(followers__user=request.user)
         queryset = self.filter_queryset(qs).annotate(
