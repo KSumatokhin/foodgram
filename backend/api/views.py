@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.filters import IngredientsFilter, RecipeFilter
+from api.pagination import CustomPageNumberPagination
 from api.permissions import IsSuperUserOrOwnerOrReadOnly
 from api.serializers import (FavoriteCreateSerializer, IngredientsSerializer,
                              RecipeCreateSerializer, RecipeSerializer,
@@ -118,6 +119,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,
                           IsSuperUserOrOwnerOrReadOnly, )
+    pagination_class = CustomPageNumberPagination
     filterset_class = RecipeFilter
     filterset_fields = (
         'author', 'tags', 'is_in_shopping_cart', 'is_favorited')

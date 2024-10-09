@@ -142,4 +142,4 @@ static/
 media/
 http/
 bash/
-backend/data
+# backend/data
